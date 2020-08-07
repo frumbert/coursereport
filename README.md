@@ -1,4 +1,4 @@
-
+```
 $shape = <<<SHAPE;
 	+--------------------------------------------------------------+
 	|Users   | course1     | course2       | course3               |  <- sticky row
@@ -15,7 +15,9 @@ $shape = <<<SHAPE;
        ^
        |
   sticky column
+```
 
-  	* the maximum number of columns is the number of activities in the course that can have completion set times the number of courses plus 1
+  	* the 
+maximum number of columns is the number of activities in the course that can have completion set times the number of courses plus 1
   	* the number of rows is the number of users in the course for that year plus the number of groups plus 2
   	* sticky tables will be using the bootstrap sticky feature https://examples.bootstrap-table.com/#extensions/fixed-columns.html
