@@ -1,0 +1,440 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package   local_classreport
+ * @copyright 2020 onwards, tim.stclair@gmail.com (https://github.com/frumbert)
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/*
+group (e.g. 7B)
+    -> has users
+        -> has courses
+            -> has completable activities within the course
+            -> might have non-completable activities that shouldn't be listed
+
+We need to know:
+    -> which courses to render (x axis)
+        $user_filter = get_users_filter_sql($this->year); // no group
+        get_courses_filter_sql($user_filter);
+    -> the list of groups and users per group (y axis)
+        foreach ($this->groups as $letter => $label) {
+            $user_filter = get_users_filter_sql($this->year, $letter);
+        }
+    -> the list of renderable activities grouped by course
+    -> the completion data for all these per user
+
+tabledata:
+
+    courses
+        fullname
+        id
+        categoryid
+
+
+different approach
+
+1. all users for a year
+2. list all courses that are visible that contain enrolments for users in the year
+3. go through each course
+4. go through each activity in the course that should be visible in the report
+5. look up the completion for the users / activity ids
+6. run through the groups and users
+7. write out the course and activity completion table data.
+
+caching
+courses for a year can be cached until a newer course record exists
+activities within courses can be calculated and then held
+
+*/
+ 
+defined('MOODLE_INTERNAL') || die;
+
+// get array of group names
+// in B => Blue format
+function get_group_names_array() {
+    $data = get_config('local_classreport', 'groupnames');
+    if (empty($data)) throw new invalid_state_exception('Group names have not been configured.');
+    $data = explode(PHP_EOL, trim($data));
+    $values = [];
+    array_walk($data, function ($value) use (&$values) {
+        if (empty($value)) return;
+        $keyname = strtoupper(substr($value,0,1));
+        $values[$keyname] = $value;
+    }, $data);
+    return $values;
+}
+
+// get the sql for user ids matching a year and optionally group
+// e.g. $in = get_users_sql(8,'B');
+// function get_users_filter_sql(int $year, $group = '_') {
+//     $op = "LIKE";
+//     if ($group !== '_') $op = "=";
+//     return "SELECT id FROM {user} WHERE department {$op} '{$year}{$group}'";
+// }
+
+// function get_user_ids_list(int $year, $group = '_') {
+//     global $DB;
+//     $sql = get_users_filter_sql($year,$group);
+//     $records = $DB->get_records_sql($sql);
+//     return implode(',',array_values(array_column($records,"id")));
+// }
+
+function get_user_details($year, $group) {
+    global $DB;
+    $fields = \user_picture::fields();
+    $sql = "
+        SELECT {$fields}
+        FROM {user}
+        WHERE department = '{$year}{$group}'
+        ORDER BY lastname, firstname
+    ";
+    return $DB->get_records_sql($sql);
+}
+
+// get a list of the course ids that contain completions for the users
+// function get_courses_filter_sql($user_filter_sql) {
+//     return "SELECT DISTINCT(course) FROM {course_modules} WHERE id IN (
+//         SELECT coursemoduleid FROM {course_modules_completion} WHERE userid IN (
+//             {$user_filter_sql}
+//         )
+//     )";
+// }
+
+// return an ordered array containing the course and activities for enrolments in a year
+// ordering: category -> course -> activity
+function get_courses_for_year($year) {
+    global $DB;
+
+    $modnames = get_config('local_classreport', 'modnames');
+    if (empty($modnames)) throw new invalid_state_exception('Module names have not been configured.');
+    $modnames = explode(',', trim($modnames));
+
+    $sql = "
+        SELECT c.id,c.category,c.fullname FROM {course} c
+        INNER JOIN {course_categories} t ON c.category = t.id
+        WHERE c.visible = 1
+        AND t.visible = 1
+        AND c.id IN (
+            SELECT m.courseid FROM {user_enrolments} e
+            INNER JOIN {enrol} m ON e.enrolid = m.id
+            WHERE e.userid IN (
+                SELECT id FROM {user}
+                WHERE department LIKE '{$year}_'
+                AND deleted = 0
+                AND suspended = 0
+            )
+        )
+        ORDER BY t.sortorder, c.sortorder
+    ";
+    if ($courses = $DB->get_records_sql($sql)) {
+        $rows = [];
+        foreach ($courses as $row) {
+            $modinfo = get_fast_modinfo($row);
+            foreach ($modinfo->get_cms() as $cmid => $cm) {
+                if ($cm->uservisible && $cm->available && in_array($cm->modname, $modnames)) {
+                    $url = new moodle_url("/mod/{$cm->modname}/view.php",["id"=>$cmid]);
+                    $rows[] = [
+                        "cmid" => (int) $cm->id,
+                        "category" => (int) $row->category,
+                        "courseid" => (int) $row->id,
+                        "fullname" => $row->fullname,
+                        "mod" => $cm->modname,
+                        "url" => $url->out()
+                    ];
+                }
+            }
+        }
+        return $rows;
+    }
+    return false;
+}
+
+function get_user_completions_data($users, $all_courses) {
+    global $DB;
+    $cmids = implode(',',array_values(array_column($all_courses,"cmid")));
+    $userids = implode(',',array_values(array_column((array) $users,"id")));
+    $sql = "
+        SELECT id, userid, completionstate, coursemoduleid FROM {course_modules_completion}
+        WHERE userid IN ($userids)
+        AND coursemoduleid IN ($cmids)
+    ";
+    unset($userids);
+    unset($cmids);
+    $records = [];
+    foreach($DB->get_records_sql($sql) as $row) {
+        $records[] = [
+            "userid" => (int) $row->userid,
+            "completionstate" => (int) $row->completionstate,
+            "cmid" => (int) $row->coursemoduleid
+        ];
+    }
+    return $records;
+}
+
+// function objectToArray($d) {
+//     if (is_object($d)) {
+//         $d = get_object_vars($d);
+//     }
+
+//     if (is_array($d)) {
+//         return array_map(__FUNCTION__, $d);
+//     } else {
+//         return $d;
+//     }
+// }
+
+// get a list of required courses in the order of their categories
+// function get_reportable_courses($course_filter_sql) {
+//     global $DB;
+//     $rows = $DB->get_records_sql("
+//         SELECT c.id,c.category,c.fullname FROM {course} c
+//         INNER JOIN {course_categories} t ON c.category = t.id
+//         WHERE c.visible = 1
+//         AND c.id IN ({$course_filter_sql})
+//         ORDER BY t.sortorder, c.sortorder
+//     ");
+//     return $rows;
+// }
+
+// function get_reportable_course_activities($course_filter_sql) {
+//     global $DB;
+
+//     $modnames = get_config('local_classreport', 'modnames');
+//     if (empty($modnames)) throw new invalid_state_exception('Module names have not been configured.');
+//     $modnames = explode(',', trim($modnames));
+
+//     if ($courses = $DB->get_records_select('course', "id IN ($course_filter_sql)")) { //, [$course_filter_sql])) {
+//         foreach ($courses as $row) {
+//             $modinfo = get_fast_modinfo($row);
+//             foreach ($modinfo->get_cms() as $cmid => $cm) {
+//                 if ($cm->uservisible && $cm->available && in_array($cm->modname, $modnames)) {
+//                     $url = new moodle_url("/mod/{$cm->modname}/view.php",["id"=>$cmid]);
+//                     $rows[] = [
+//                         "course" => $row->id,
+//                         "mod" => $cm->modname,
+//                         "url" => $url->out()
+//                     ];
+//                 }
+//             }
+//         }
+//         return $rows;
+//     }
+//     return false;
+// }
+
+// // get a list of completions for courses
+// function get_reportable_completions($course_filter_sql, $user_filter_sql) {
+//     global $DB;
+//     $sql = "
+//             SELECT DISTINCT
+//             c.id AS course,
+//             cr.id AS criteriaid,
+//             cr.module AS modulename,
+//             ra.userid AS userid,
+//             mc.timemodified AS timecompleted
+//         FROM
+//             {course_completion_criteria} cr
+//         INNER JOIN
+//             {course} c
+//          ON cr.course = c.id
+//         INNER JOIN
+//             {context} con
+//          ON con.instanceid = c.id
+//         INNER JOIN
+//             {role_assignments} ra
+//           ON ra.contextid = con.id
+//         INNER JOIN
+//             {course_modules_completion} mc
+//          ON mc.coursemoduleid = cr.moduleinstance
+//         AND mc.userid = ra.userid
+//         LEFT JOIN
+//             {course_completion_crit_compl} cc
+//          ON cc.criteriaid = cr.id
+//         AND cc.userid = ra.userid
+//         WHERE
+//             cr.criteriatype = ?
+//         AND con.contextlevel = ?
+//         AND c.enablecompletion = 1
+//         AND cc.id IS NULL
+//         AND (
+//             mc.completionstate = ?
+//          OR mc.completionstate = ?
+//          OR mc.completionstate = ?
+//          OR mc.completionstate = ?
+//             )
+//         AND c.id IN ($course_filter_sql)
+//         AND ra.userid IN ($user_filter_sql)
+//     ";
+//     echo str_replace(['{','}'],['mdl_',''], $sql);
+//     return $DB->get_records_sql($sql, [COMPLETION_CRITERIA_TYPE_ACTIVITY,CONTEXT_COURSE,COMPLETION_INCOMPLETE,COMPLETION_COMPLETE,COMPLETION_COMPLETE_PASS,COMPLETION_COMPLETE_FAIL]);
+// }
+
+// function get_template_list() {
+//     global $CFG, $USER, $DB;
+
+//     $sql = "select id,fullname from {course} where category = (select id from {course_categories} where name='Course templates')";
+//     return $DB->get_records_sql($sql);
+// }
+
+// function get_template_list_form() {
+//     global $CFG, $USER, $DB;
+
+//     $context = context_user::instance($USER->id);
+//     $redirecturl = $CFG->wwwroot.'/local/classreport/index.php?step=2';
+//     $rows = get_template_list();
+
+//     $table = new html_table();
+//     $table->align = array('left');
+
+//     foreach ($rows as $row) {
+//         $data = array();
+
+//         $data[] = format_string($row->fullname, true, ['context' => $context]);
+//         $data[] = html_writer::empty_tag('input', array('type' => 'button', 'value' => get_string('useastemplate', 'local_classreport'), 'onclick' => 'window.location.href="'.$redirecturl.'&cid='.$row->id.'"', 'class' => 'btn btn-primary'));
+
+//         $table->data[] = $data;
+//     }
+
+//     return html_writer::table($table);
+// }
+
+// function get_template_categories($visible=1) {
+//     global $CFG, $USER, $DB;
+
+//     $sql = "select id,name,description from {course_categories} where visible=".$visible;
+//     return $DB->get_records_sql($sql);
+// }
+
+// function get_template_categories_form($cid) {
+//     global $CFG, $USER, $DB;
+
+//     $context = context_user::instance($USER->id);
+//     $redirecturl = $CFG->wwwroot.'/local/classreport/index.php?step=3&cid='.$cid;
+//     $rows = get_template_categories(1);
+
+//     $output = '';
+//     $action = $redirecturl;
+//     $output .= html_writer::start_tag('form', array('action' => $action, 'method' => 'post'));
+//     $table = new html_table();
+//     $table->align = array('left');
+
+//     foreach ($rows as $row) {
+//         $data = array();
+
+//         $data[] = html_writer::empty_tag('input', array('type' => 'radio', 'value' => $row->id, 'name' => 'sel_cate'));
+//         $data[] = format_string($row->name, true, ['context' => $context]);
+//         $data[] = strip_tags(format_text($row->description, FORMAT_HTML, ['context' => $context]));
+
+//         $table->data[] = $data;
+//     }
+
+//     $rows = get_template_categories(0);
+//     $hiddentable = new html_table();
+
+//     $hiddentable->align = array('left');
+
+//     foreach ($rows as $row) {
+//         $data = array();
+
+//         $data[] = html_writer::empty_tag('input', array('type' => 'radio', 'value' => $row->id, 'name' => 'sel_cate'));
+//         $data[] = format_string($row->name, true, ['context' => $context]);
+//         $data[] = strip_tags(format_text($row->description, FORMAT_HTML, ['context' => $context]));
+
+//         $hiddentable->data[] = $data;
+//     }
+
+//     $output .= html_writer::table($table);
+//     $output .= html_writer::tag('p', html_writer::tag('strong', get_string('hiddencategories',  'local_classreport')));
+//     $output .= html_writer::table($hiddentable);
+//     $output .= html_writer::tag('p', html_writer::empty_tag('input', array('type' => 'button', 'value' => 'Back', 'onclick' => 'javascript :history.back(-1)', 'class' => 'btn btn-primary','style'=>'margin-right:20px;')).html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('continue', 'local_classreport'), 'class' => 'btn btn-primary')));
+//     $output .= html_writer::end_tag('form');
+//     return $output;
+// }
+
+// function get_template_setting_form($cid, $categoryid) {
+//     global $CFG, $USER, $DB;
+
+//     $course = $DB->get_record('course',array('id'=>$cid));
+
+//     $redirecturl = $CFG->wwwroot.'/local/classreport/process.php?cid='.$cid.'&cateid='.$categoryid.'&sesskey='.sesskey();
+//     $returnurl   = $CFG->wwwroot.'/local/classreport/index.php?step=4';
+//     $output = '';
+//     $output .= '<script src="'.$CFG->wwwroot.'/local/classreport/js/jquery-1.8.3.min.js"></script>';
+//     $output .= '<link rel="stylesheet" href="'.$CFG->wwwroot.'/local/classreport/js/bootstrap-datetimepicker.css">';
+//     $output .= '<script src="'.$CFG->wwwroot.'/local/classreport/js/bootstrap-datetimepicker.js"></script>';
+//     $output .= '<script src="'.$CFG->wwwroot.'/local/classreport/js/process.js"></script>';
+
+//     //$output .= '<link rel="stylesheet" type="text/css" href="'.$CFG->wwwroot.'/local/classreport/js/bootstrap-timepicker.min.css" />';
+//     //$output .= '<script src="'.$CFG->wwwroot.'/local/classreport/js/bootstrap-timepicker.min.js"></script>';
+
+//     $output .= html_writer::start_tag('input', array('type' => 'hidden', 'id' => 'process_request_url', 'value' => $redirecturl));
+//     $output .= html_writer::start_tag('input', array('type' => 'hidden', 'id' => 'process_returnurl', 'value' => $returnurl));
+//     $output .= html_writer::start_tag('input', array('type' => 'hidden', 'id' => 'success_returnurl', 'value' => $CFG->wwwroot));
+//     $table = new html_table();
+//     $table->align = array('left');
+
+//     $table->data[] = array(get_string('coursename', 'local_classreport'),
+//                            html_writer::empty_tag('input', array('type' => 'text', 'id' => 'course_name')));
+//     $table->data[] = array(get_string('courseshortname', 'local_classreport'),
+//                            html_writer::empty_tag('input', array('type' => 'text', 'id' => 'course_short_name')));
+//     if($course->format == 'event'){
+//         $options_hour = $options_min = '';
+//         for($i=0;$i<24;$i++){
+//             $hour = $i;
+//             if($hour < 10){
+//                 $hour = '0'.$hour;
+//             }
+//             $options_hour .= '<option value="'.$hour.'">'.$hour.'</option>';
+//         }
+
+//         for($i=0;$i<60;$i++){
+//             $min = $i;
+//             if($min < 10){
+//                 $min = '0'.$min;
+//             }
+//             $options_min .= '<option value="'.$min.'">'.$min.'</option>';
+//         }
+//         //$table->data[] = array(get_string('datetime', 'local_classreport'),html_writer::empty_tag('input', array('type' => 'text', 'id' => 'course_date', 'class' => "form_datetime",'style' => 'margin-right:10px;')).html_writer::empty_tag('input', array('type' => 'text', 'id' => 'start_datetime_h', 'class' => "form_datetime",'style' => 'margin-right:10px;' 'size'=>2)).html_writer::empty_tag('input', array('type' => 'text', 'id' => 'end_datetime', 'class' => "form_datetime")));
+//         $start_datetime_h = '<select id="start_datetime_h" style="margin-right:3px;">'.$options_hour.'</select>';
+//         $start_datetime_m = '<select id="start_datetime_m" style="margin:0 20px 0 3px;">'.$options_min.'</select>';
+
+//         $end_datetime_h = '<select id="end_datetime_h" style="margin-right:3px;">'.$options_hour.'</select>';
+//         $end_datetime_m = '<select id="end_datetime_m" style="margin:0 20px 0 3px;">'.$options_min.'</select>';
+
+//         $table->data[] = array(get_string('datetime', 'local_classreport'),html_writer::empty_tag('input', array('type' => 'text', 'id' => 'course_date', 'class' => "form_datetime",'style' => 'margin-right:10px;')).$start_datetime_h.":".$start_datetime_m.$end_datetime_h.":".$end_datetime_m);
+        
+//         $config = get_config('format_event');
+//         $locations = $config->locations;
+//         $arr_locations = explode(";", $locations);
+//         $options = "<select id='location'>";
+//         foreach ($arr_locations as $location) {
+//             if(empty($location))continue;
+//             $options.= "<option value='".$location."'>".$location."</option>";
+//         }
+//         $options.="</select>";
+//         $table->data[] = array(get_string('location', 'local_classreport'), $options);
+//     }
+
+//     $output .= html_writer::table($table);
+//     $output .= html_writer::tag('p', html_writer::empty_tag('input', array('type' => 'button', 'value' => 'Back', 'onclick' => 'javascript :history.back(-1)', 'class' => 'btn btn-primary','style'=>'margin-right:20px;')).html_writer::empty_tag('input', array('type' => 'button', 'value' => get_string('continue', 'local_classreport'), 'id' => 'btnProcess', 'class' => 'btn btn-primary')));
+
+//     //$output .= '<script>$("#course_date").datetimepicker({minView: "month",format: "yyyy-mm-dd"});$("#start_datetime").datetimepicker({minView: 0,startView: 1,format: "hh:ii"});$("#end_datetime").datetimepicker({minView: 0,startView: 1,format: "hh:ii"});$("#course_date").datetimepicker().on("changeDate", function(ev){$("#start_datetime").val($("#course_date").val());});$("#start_datetime").datetimepicker().on("changeDate", function(ev){$("#end_datetime").val($("#start_datetime").val());});</script>';
+
+//     $output .= '<script>$("#course_date").datetimepicker({minView: "month",format: "yyyy-mm-dd",autoclose:true});</script>';
+//     return $output;
+// }

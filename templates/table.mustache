@@ -1,0 +1,60 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_classreport/main
+
+    This template renders the main content area for the class report local plugin.
+
+    Example context (json):
+    {}
+}}
+<div class="local_classreport_table_wrapper">
+<table border="1" style="border-collapse:separate">
+    <thead>
+        <tr>
+            <td rowspan="2"></td>
+            {{#courseheaders}}
+            <th colspan="{{colspan}}" class="course-{{id}} category-{{category}}"><a href="/course/view.php?id={{id}}">{{name}}</a></th>
+            {{/courseheaders}}
+        </tr>
+        <tr>
+            {{#activities}}
+            <th class="category-{{category}} mod-{{name}}"><a href="/mod/{{name}}/view.php?id={{cmid}}">{{name}}</a></th>
+            {{/activities}}
+        </tr>
+    </thead>
+    <tbody>
+    {{#table}}
+        <tr>
+            <th class="{{class}}">{{{content}}}</th>
+    {{#header}}
+            <td colspan="{{colspan}}"></td>
+    {{/header}}
+    {{^header}}
+            {{#columns}}<td class="state-{{.}}">{{.}}</td>{{/columns}}
+    {{/header}}
+        </tr>
+    {{/table}}
+</table>
+</div>
+{{#js}}
+require(['jquery'], function($) {
+
+  console.info('ready to render table')
+
+});
+{{/js}}
