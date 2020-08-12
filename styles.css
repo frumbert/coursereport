@@ -1,3 +1,158 @@
-.local_classreport_table_wrapper td.state-1 {
-	background-color: green;
+.local_classreport_filter_wrapper {
+	padding: .5rem 1rem;
+	background-color: #f4f4f4;
+	margin-bottom: .5rem;
+}
+.local_classreport_table_wrapper {
+	width: 100%;
+	overflow:auto;
+}
+
+.local_classreport_table_wrapper table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.local_classreport_scroll_wrapper {
+	overflow: auto;
+}
+
+.local_classreport_table_wrapper table .sticky-column {
+	left: 0;
+	position: sticky;
+	border-right: rgba(0,0,0,.2);
+	z-index:2;
+}
+
+.local_classreport_table_wrapper table .sticky-row-0 {
+	top: 0;
+	position: sticky;
+	z-index:3;
+	vertical-align: top;
+}
+
+.local_classreport_table_wrapper table .sticky-row-1 {
+	top: 52px;
+	position: sticky;
+	z-index:4;
+}
+
+.local_classreport_table_wrapper table thead .small {
+	color: inherit;
+}
+
+.local_classreport_table_wrapper table tbody {
+	vertical-align: middle;
+	text-align: center;
+}
+.local_classreport_table_wrapper table tbody tr:nth-of-type(even) {
+	background-color: #f4f4f4;
+}
+
+.local_classreport_table_wrapper table th {
+	padding: .3rem .7rem;
+}
+
+.local_classreport_table_wrapper table tbody th {
+	text-align:left;
+	min-width: 13rem;
+}
+
+.local_classreport_table_wrapper table tbody .state-1 {
+	background-color: rgba(0,128,0,.5);
+}
+
+.local_classreport_table_wrapper table thead th[class*='category-'] a,
+.local_classreport_table_wrapper table tbody th[class*='group-'] a {
+	color: inherit;
+}
+
+
+.group-blue {
+	background-color: #336699;
+	color: white;
+}
+.group-red {
+	background-color: #d33e43;
+	color: white;
+}
+.group-green {
+	background-color: #3a7d44;
+	color: white;
+}
+.group-yellow {
+	background-color: #deda54;
+	color: white;
+}
+.group-white {
+	background-color: #fcfcfc;
+	color: black;
+}
+
+.category-1 {
+	background-color: rgba(9,35,39,.25);
+	color: white;
+}
+.category-2 {
+	background-color: rgba(11,83,81,.25);
+	color: white;
+}
+.category-3 {
+	background-color: rgba(0,169,165,.25);
+}
+.category-4 {
+	background-color: rgba(78,128,152,.25);
+	color: white;
+}
+.category-5 {
+	background-color: rgba(144,194,231,.25);
+}
+.category-6 {
+	background-color: rgba(142,220,230,.25);
+}
+.category-7 {
+	background-color: rgba(213,220,249,.25);
+}
+.category-8 {
+	background-color: rgba(167,176,202,.25);
+}
+.category-9 {
+	background-color: rgba(114,94,84,.25);
+}
+.category-10 {
+	background-color: rgba(68,54,39,.25);
+}
+
+.local_classreport_table_wrapper table thead {
+	background-color: white;
+}
+.local_classreport_table_wrapper table thead .category-1 {
+	background-color: rgb(9,35,39);
+}
+.local_classreport_table_wrapper table thead .category-2 {
+	background-color: rgb(11,83,81);
+}
+.local_classreport_table_wrapper table thead .category-3 {
+	background-color: rgb(0,169,165);
+}
+.local_classreport_table_wrapper table thead .category-4 {
+	background-color: rgb(78,128,152);
+}
+.local_classreport_table_wrapper table thead .category-5 {
+	background-color: rgb(144,194,231);
+}
+.local_classreport_table_wrapper table thead .category-6 {
+	background-color: rgb(142,220,230);
+}
+.local_classreport_table_wrapper table thead .category-7 {
+	background-color: rgb(213,220,249);
+}
+.local_classreport_table_wrapper table thead .category-8 {
+	background-color: rgb(167,176,202);
+}
+.local_classreport_table_wrapper table thead .category-9 {
+	background-color: rgb(114,94,84);
+}
+.local_classreport_table_wrapper table thead .category-10 {
+	background-color: rgb(68,54,39);
 }
