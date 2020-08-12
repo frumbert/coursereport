@@ -60,7 +60,7 @@ function get_courses_for_year($year) {
     $modnames = explode(',', trim($modnames));
 
     $sql = "
-        SELECT c.id,c.category,c.fullname FROM {course} c
+        SELECT c.id,c.category,c.fullname,c.startdate FROM {course} c
         INNER JOIN {course_categories} t ON c.category = t.id
         WHERE c.visible = 1
         AND t.visible = 1
@@ -88,6 +88,7 @@ function get_courses_for_year($year) {
                         "category" => (int) $row->category,
                         "courseid" => (int) $row->id,
                         "fullname" => $row->fullname,
+                        "startdate" => (int) $row->startdate,
                         "mod" => $cm->modname,
                     //    "url" => $url->out()
                     ];
