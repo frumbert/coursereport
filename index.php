@@ -40,17 +40,13 @@ $PAGE->set_pagelayout('standard');
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
 
-// require bootstrap-table + fixed column plugin
-$PAGE->requires->js(new moodle_url("/local/classreport/js/bootstrap-table.min.js"), true);
-$PAGE->requires->js(new moodle_url("/local/classreport/js/bootstrap-table-fixed-columns.min.js"), true);
-$PAGE->requires->css(new moodle_url("/local/classreport/css/bootstrap-table.min.css"));
-$PAGE->requires->css(new moodle_url("/local/classreport/css/bootstrap-table-fixed-columns.min.css"));
-
 // render the page using templates
 $renderer = $PAGE->get_renderer('local_classreport');
 
 echo $OUTPUT->header();
 $renderable = new \local_classreport\output\tabs($year);
+echo $renderer->render($renderable);
+$renderable = new \local_classreport\output\filter();
 echo $renderer->render($renderable);
 $renderable = new \local_classreport\output\main($year, $sort);
 echo $renderer->render($renderable);

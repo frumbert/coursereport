@@ -22,3 +22,6 @@ $string['groupnamesdesc'] = 'One name per line. First letter will be used as pre
 
 $string['modnames'] = 'Activities to include';
 $string['modnamesdesc'] = 'Select one or more activities to include';
+
+$string['label_finduser'] = 'Find a user:';
+$string['placeholder_typename'] = 'Type a few letters...';
