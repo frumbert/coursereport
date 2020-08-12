@@ -1,0 +1,44 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_classreport/filter
+
+    This template renders the filter bar for the class report local plugin.
+
+    Example context (json):
+    {}
+}}
+<div class="local_classreport_filter_wrapper">
+<label for="finduser_{{uniqid}}">{{#str}} label_finduser, local_classreport {{/str}}</label>
+<input type="text" id="finduser_{{uniqid}}" placeholder="{{#str}} placeholder_typename, local_classreport {{/str}}">
+</div>
+
+{{#js}}
+require(['jquery'], function($) {
+
+	// super simple row filter
+	// see https://stackoverflow.com/a/51221279
+	var $rows = $('.local_classreport_table_wrapper table > tbody > tr');
+	$('#finduser_{{uniqid}}').on('keyup', function() {
+		var value = $(this).val().trim().toLowerCase();
+		$rows.filter(function() {
+			$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+		});
+	});
+
+});
+{{/js}}
