@@ -23,38 +23,52 @@
     {}
 }}
 <div class="local_classreport_table_wrapper">
-<table border="1" style="border-collapse:separate">
+<div class="local_classreport_scroll_wrapper">
+<table class="local_classreport_table">
     <thead>
         <tr>
-            <td rowspan="2"></td>
+            <th class="sticky-column"><span/></th>
             {{#courseheaders}}
-            <th colspan="{{colspan}}" class="course-{{id}} category-{{category}}"><a href="/course/view.php?id={{id}}">{{name}}</a></th>
+            <th colspan="{{colspan}}" class="sticky-row-0 course-{{id}} category-{{category}}"><a href="/course/view.php?id={{id}}">{{name}}</a><br><span class="small">{{#userdate}} {{startdate}}, {{#str}} strftimedate {{/str}} {{/userdate}}</span></th>
             {{/courseheaders}}
         </tr>
         <tr>
+            <th class="sticky-column">{{#str}} students {{/str}}</th>
             {{#activities}}
-            <th class="category-{{category}} mod-{{name}}"><a href="/mod/{{name}}/view.php?id={{cmid}}">{{name}}</a></th>
+            <th class="sticky-row-1 category-{{category}} mod-{{name}}"><a href="/mod/{{name}}/view.php?id={{cmid}}">{{name}}</a></th>
             {{/activities}}
         </tr>
     </thead>
     <tbody>
     {{#table}}
         <tr>
-            <th class="{{class}}">{{{content}}}</th>
+            <th class="sticky-column {{class}}">{{{content}}}</th>
     {{#header}}
-            <td colspan="{{colspan}}"></td>
+            <td colspan="{{colspan}}" class="{{class}}"></td>
     {{/header}}
     {{^header}}
-            {{#columns}}<td class="state-{{.}}">{{.}}</td>{{/columns}}
+            {{#columns}}<td class="state-{{complete}} category-{{category}}">{{#complete}}{{# pix }} i/valid, core{{/pix}}{{/complete}}{{^complete}}{{# pix }} i/invalid, core{{/pix}}{{/complete}}</td>{{/columns}}
     {{/header}}
         </tr>
     {{/table}}
 </table>
 </div>
+</div>
 {{#js}}
 require(['jquery'], function($) {
 
-  console.info('ready to render table')
+    // resize table wrapper to fit viewport height
+    function fitViewport() {
+        var w = $(".local_classreport_table_wrapper"),
+            pos = w.offset(),
+            wh = $(window).height(),
+            rem1 = parseInt($('html').css('font-size'));
+        $(".local_classreport_scroll_wrapper").height(wh - pos.top - rem1);
+    }
+
+    $(window).on('resize', fitViewport);
+
+    fitViewport();
 
 });
 {{/js}}

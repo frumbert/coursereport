@@ -78,6 +78,7 @@ class main implements renderable, templatable {
             if (!array_key_exists($course['fullname'], $courseheaders)) {
                 $courseheaders[$course['fullname']] = [
                     "name" => $course['fullname'],
+                    "startdate" => $course['startdate'],
                     "colspan" => 0,
                     "id" => $course['courseid'],
                     "category" => $course['category']
@@ -115,7 +116,10 @@ class main implements renderable, templatable {
                             $complete = ($completion['completionstate'] > 0);
                         }
                     }
-                    $data[] = $complete;
+                    $data[] = [
+                        "complete" => $complete,
+                        "category" => $cm['category']
+                    ];
                 }
                 $userhtml = $OUTPUT->user_picture($user) .
                             \html_writer::link(new \moodle_url('/user/view.php', ['id' => $user->id]), fullname($user));
