@@ -25,3 +25,5 @@ $string['modnamesdesc'] = 'Select one or more activities to include';
 
 $string['label_finduser'] = 'Find a user:';
 $string['placeholder_typename'] = 'Type a few letters...';
+
+$string['default_user_css'] = '';
