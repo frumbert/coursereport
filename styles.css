@@ -65,6 +65,7 @@
 
 .local_classreport_table_wrapper table thead .small {
 	color: inherit;
+	font-size: 0.7rem;
 }
 
 .local_classreport_table_wrapper table tbody {
@@ -102,8 +103,13 @@
 }
 */
 
+.local_classreport_table_wrapper table tbody .state-0 {
+	background-color: rgba(128,0,0,.1);
+	color: rgba(128,0,0,.15);
+}
 .local_classreport_table_wrapper table tbody .state-1 {
 	background-color: rgba(0,128,0,.25);
+	color: rgba(0,128,0,.15);
 }
 
 .local_classreport_table_wrapper table thead th[class*='category-'] a,
