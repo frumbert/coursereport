@@ -18,6 +18,7 @@
     @template local_classreport/filter
 
     This template renders the filter bar for the class report local plugin.
+    It assumes to be used on the same page as the output table and implements a jQuery-based search.
 
     Example context (json):
     {}
@@ -25,13 +26,14 @@
 <div class="local_classreport_filter_wrapper">
 <label for="finduser_{{uniqid}}">{{#str}} label_finduser, local_classreport {{/str}}</label>
 <input type="text" id="finduser_{{uniqid}}" placeholder="{{#str}} placeholder_typename, local_classreport {{/str}}">
+<button>Download</button>
 </div>
 
 {{#js}}
 require(['jquery'], function($) {
 
 	// super simple row filter
-	// see https://stackoverflow.com/a/51221279
+	// adapted from https://stackoverflow.com/a/51221279
 	var $rows = $('.local_classreport_table_wrapper table > tbody > tr');
 	$('#finduser_{{uniqid}}').on('keyup', function() {
 		var value = $(this).val().trim().toLowerCase();

@@ -37,7 +37,7 @@
             {{#activities}}
             <th class="sticky-row-1 category-{{category}} mod-{{mod}} {{classname}}"><a href="/mod/{{mod}}/view.php?id={{cmid}}">{{name}}</a></th>
             {{#last}}
-            <th class="sticky-row-1 category-{{category}} done {{classname}}">Done</th>
+            <th class="sticky-row-1 category-{{category}} done {{classname}}">{{#str}} done, local_classreport {{/str}}</th>
             {{/last}}
             {{/activities}}
         </tr>
