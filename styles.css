@@ -1,3 +1,26 @@
+:root {
+
+	--blue: #336699;
+	--green: #3a7d44;
+	--red: #d33e43;
+	--yellow: #deda54;
+	--white: #fcfcfc;
+
+	--colour1: #469FA4;
+	--colour2: #BBBE53;
+	--colour3: #E27443;
+	--colour4: #D3B2A1;
+	--colour5: #96A79D;
+	--colour6: #F1B4BC;
+	--colour7: #EE805B;
+	--colour8: #8F4866;
+	--colour9: #31233A;
+	--colour10: #E39737;
+
+	--gap: 5px;
+
+}
+
 .local_classreport_filter_wrapper {
 	padding: .5rem 1rem;
 	background-color: #f4f4f4;
@@ -9,8 +32,11 @@
 }
 
 .local_classreport_table_wrapper table {
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 1px;
 	width: 100%;
+	/* can't do this and have sticky cells
+	overflow:hidden; */
 }
 
 .local_classreport_scroll_wrapper {
@@ -32,7 +58,7 @@
 }
 
 .local_classreport_table_wrapper table .sticky-row-1 {
-	top: 52px;
+	top: 53px;
 	position: sticky;
 	z-index:4;
 }
@@ -45,10 +71,11 @@
 	vertical-align: middle;
 	text-align: center;
 }
-.local_classreport_table_wrapper table tbody tr:nth-of-type(even) {
+
+/*.local_classreport_table_wrapper table tbody tr:nth-of-type(even) {
 	background-color: #f4f4f4;
 }
-
+*/
 .local_classreport_table_wrapper table th {
 	padding: .3rem .7rem;
 }
@@ -58,8 +85,25 @@
 	min-width: 13rem;
 }
 
+/* can't do this and have sticky cells
+.local_classreport_table_wrapper table tbody td {
+	position: relative;
+}
+
+.local_classreport_table_wrapper table tbody td:hover::after {
+	background-color: rgba(255,255,255,.05);
+	content: "";
+	position:absolute;
+	left:0;
+	top:-5000px;
+	height:10000px;
+	width:100%;
+	z-index:1;
+}
+*/
+
 .local_classreport_table_wrapper table tbody .state-1 {
-	background-color: rgba(0,128,0,.5);
+	background-color: rgba(0,128,0,.25);
 }
 
 .local_classreport_table_wrapper table thead th[class*='category-'] a,
@@ -67,92 +111,115 @@
 	color: inherit;
 }
 
+.local_classreport_table_wrapper table tr.coursenames th:not(:first-of-type),
+.local_classreport_table_wrapper table .first:not(:first-of-type) {
+	border-left: var(--gap) solid white;
+}
+.local_classreport_table_wrapper table tr.modulenames th:nth-of-type(2) {
+	border-left:none;
+}
+
+.local_classreport_table_wrapper table thead tr.modulenames th {
+	line-height:1rem;
+	padding: .2rem .5rem;
+	font-weight: normal;
+}
+.local_classreport_table_wrapper table thead tr.modulenames th:first-of-type {
+	vertical-align: bottom;
+	font-weight: bold;
+}
+
+
+
 
 .group-blue {
-	background-color: #336699;
+	background-color: var(--blue);
 	color: white;
 }
 .group-red {
-	background-color: #d33e43;
+	background-color: var(--red);
 	color: white;
 }
 .group-green {
-	background-color: #3a7d44;
+	background-color: var(--green);
 	color: white;
 }
 .group-yellow {
-	background-color: #deda54;
+	background-color:var(--yellow);
 	color: white;
 }
 .group-white {
-	background-color: #fcfcfc;
+	background-color: var(--white);
 	color: black;
 }
 
-.category-1 {
-	background-color: rgba(9,35,39,.25);
+.local_classreport_table_wrapper table [class*='category-'] {
 	color: white;
+}
+
+.category-1 {
+	box-shadow: inset -1px -1px 1px var(--colour1);
 }
 .category-2 {
-	background-color: rgba(11,83,81,.25);
-	color: white;
+	box-shadow: inset -1px -1px 1px var(--colour2);
 }
 .category-3 {
-	background-color: rgba(0,169,165,.25);
+	box-shadow: inset -1px -1px 1px var(--colour3);
 }
 .category-4 {
-	background-color: rgba(78,128,152,.25);
-	color: white;
+	box-shadow: inset -1px -1px 1px var(--colour4);
+	color: black !important;
 }
 .category-5 {
-	background-color: rgba(144,194,231,.25);
+	box-shadow: inset -1px -1px 1px var(--colour5);
 }
 .category-6 {
-	background-color: rgba(142,220,230,.25);
+	box-shadow: inset -1px -1px 1px var(--colour6);
+	color: black;
 }
 .category-7 {
-	background-color: rgba(213,220,249,.25);
+	box-shadow: inset -1px -1px 1px var(--colour7);
 }
 .category-8 {
-	background-color: rgba(167,176,202,.25);
+	box-shadow: inset -1px -1px 1px var(--colour8);
 }
 .category-9 {
-	background-color: rgba(114,94,84,.25);
+	box-shadow: inset -1px -1px 1px var(--colour9);
 }
 .category-10 {
-	background-color: rgba(68,54,39,.25);
+	box-shadow: inset -1px -1px 1px var(--colour10);
 }
 
 .local_classreport_table_wrapper table thead {
 	background-color: white;
 }
 .local_classreport_table_wrapper table thead .category-1 {
-	background-color: rgb(9,35,39);
+	background-color: var(--colour1);
 }
 .local_classreport_table_wrapper table thead .category-2 {
-	background-color: rgb(11,83,81);
+	background-color: var(--colour2);
 }
 .local_classreport_table_wrapper table thead .category-3 {
-	background-color: rgb(0,169,165);
+	background-color: var(--colour3);
 }
 .local_classreport_table_wrapper table thead .category-4 {
-	background-color: rgb(78,128,152);
+	background-color: var(--colour4);
 }
 .local_classreport_table_wrapper table thead .category-5 {
-	background-color: rgb(144,194,231);
+	background-color: var(--colour5);
 }
 .local_classreport_table_wrapper table thead .category-6 {
-	background-color: rgb(142,220,230);
+	background-color: var(--colour6);
 }
 .local_classreport_table_wrapper table thead .category-7 {
-	background-color: rgb(213,220,249);
+	background-color: var(--colour7);
 }
 .local_classreport_table_wrapper table thead .category-8 {
-	background-color: rgb(167,176,202);
+	background-color: var(--colour8);
 }
 .local_classreport_table_wrapper table thead .category-9 {
-	background-color: rgb(114,94,84);
+	background-color: var(--colour9);
 }
 .local_classreport_table_wrapper table thead .category-10 {
-	background-color: rgb(68,54,39);
+	background-color: var(--colour10);
 }
