@@ -36,18 +36,22 @@
             <th class="sticky-column">{{#str}} students {{/str}}</th>
             {{#activities}}
             <th class="sticky-row-1 category-{{category}} mod-{{mod}} {{classname}}"><a href="/mod/{{mod}}/view.php?id={{cmid}}">{{name}}</a></th>
+            {{#last}}
+            <th class="sticky-row-1 category-{{category}} done {{classname}}">Done</th>
+            {{/last}}
             {{/activities}}
         </tr>
     </thead>
     <tbody>
     {{#table}}
         <tr>
-            <th class="sticky-column {{class}}">{{{content}}}</th>
+            <th class="sticky-column {{class}}">{{{content}}} <sup title='level'>{{level}}</sup></th>
     {{#header}}
             <th colspan="{{colspan}}" class="{{class}}"></th>
     {{/header}}
     {{^header}}
-            {{#columns}}<td class="state-{{complete}} category-{{category}} {{classname}}">{{#complete}}{{# pix }} i/valid, core{{/pix}}{{/complete}}{{^complete}}{{# pix }} i/invalid, core{{/pix}}{{/complete}}</td>{{/columns}}
+            {{#columns}}<td class="state-{{complete}} category-{{category}} {{classname}}">{{#complete}}{{# pix }} i/checkedcircle, core{{/pix}}{{/complete}}{{^complete}}{{# pix }} i/uncheckedcircle, core{{/pix}}{{/complete}}</td>
+            {{#last}}<td class="state-{{done}} category-{{category}} {{classname}}">{{#done}}{{# pix }} i/valid, core{{/pix}}{{/done}}{{^done}}{{# pix }} i/invalid, core{{/pix}}{{/done}}</td>{{/last}}{{/columns}}
     {{/header}}
         </tr>
     {{/table}}

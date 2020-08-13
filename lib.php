@@ -40,7 +40,7 @@ function get_group_names_array() {
 // look up users in a year and group, return useful user fields
 function get_user_details($year, $group) {
     global $DB;
-    $fields = \user_picture::fields();
+    $fields = \user_picture::fields('',['institution']);
     $sql = "
         SELECT {$fields}
         FROM {user}
@@ -84,7 +84,7 @@ function get_courses_for_year($year) {
                 if ($cm->uservisible && $cm->available && in_array($cm->modname, $modnames)) {
                     // $url = new moodle_url("/mod/{$cm->modname}/view.php",["id"=>$cmid]);
                     $rows[] = [
-                        "id" => $cm->course,
+                        "id" => (int) $cm->course,
                         "cmid" => (int) $cm->id,
                         "category" => (int) $row->category,
                         "courseid" => (int) $row->id,
@@ -123,4 +123,18 @@ function get_user_completions_data($users, $all_courses) {
         ];
     }
     return $records;
+}
+
+/**
+ * Get icon mapping for font-awesome.
+ *
+ * @return  array
+ */
+function local_classreport_get_fontawesome_icon_map() {
+    return [
+        'i/checkedcircle' => 'fa-circle',
+        'i/uncheckedcircle' => 'fa-circle-o',
+        'i/valid' => 'fa-check',
+        'i/invalid' => 'fa-times'
+    ];
 }

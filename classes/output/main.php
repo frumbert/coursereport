@@ -78,7 +78,8 @@ class main implements renderable, templatable {
                 "mod" => $course['mod'],
                 "name" => $course['activity'],
                 "category" => $course['category'],
-                "classname" => $classname
+                "classname" => $classname,
+                "course" => $course['id']
             ];
             if (!array_key_exists($course['fullname'], $courseheaders)) {
                 $courseheaders[$course['fullname']] = [
@@ -98,8 +99,8 @@ class main implements renderable, templatable {
             // for each group, write a row with the group name
             $table[] = [
                 "header" => true,             // {{#header}}do group row layout{{/header}}              
-                "class" => "group-" . strtolower($label),
-                "content" => $label,
+                "class" => "group-" . strtolower(trim($label)),
+                "content" => trim($label),
                 "colspan" => $columns
             ];
 
@@ -112,46 +113,100 @@ class main implements renderable, templatable {
                 // array to contain the completion rows
                 $data = [];
                 $total_complete = 0;
-                $end = end($activities);
                 // for each activity, grab the matching completion
                 foreach ($activities as $cm) {
-                    $complete = 0;
+                    $complete = false;
                     // find the user completion record ..
                     foreach ($completions as $completion) {
                         if ($completion['userid'] === intval($user->id) && $completion['cmid'] === $cm['cmid']) {
-                            $complete = ($completion['completionstate'] > 0);
+                            $complete = boolval($completion['completionstate'] > 0);
                         }
                     }
                     $data[] = [
                         "complete" => $complete,
                         "category" => $cm['category'],
-                        "classname" => $cm['classname']
+                        "classname" => $cm['classname'],
+                        "course" => $cm['course']
                     ];
-                    // if ($complete) $total_complete++;
                 }
-                // $data[] = [
-                //     "complete" => (count($activities) === $total_complete),
-                //     "category" => $cm['category']
-                // ];
                 $userhtml = $OUTPUT->user_picture($user) .
                             \html_writer::link(new \moodle_url('/user/view.php', ['id' => $user->id]), fullname($user));
  
                 $table[] = [
                     "header" => false,         // {{^header}}do user row layout{{/header}}
                     "content" => $userhtml,
+                    "level" => $user->institution,
                     "class" => "group-" . strtolower($label),
                     "columns" => $data
                 ];
             }
         }
 
+        // now we have to shim in a 'done' column to the data
+        // doing this here as arrays is much faster than incurring the db penalty doing it earlier
+
+        // courses span one more column than they have displayed activities for to account for the 'done' column
+        $courseheader_count = count($courseheaders);
+        foreach ($courseheaders as &$patch) {
+            $patch['colspan']++;
+        }
+
+        // identify the last activity for each course and tag the record (we render the extra cell inside the template)
+        $activity_count = count($activities);
+        foreach ($activities as $index => $curr) {
+            if ($index > 0) {
+                $modindex = $index - 1;
+                $prev = $activities[$modindex];
+                if ($activities[$modindex]['course'] !== $curr['course'] || $index === $activity_count-1) {
+                    if ($index === $activity_count-1) $modindex = $index; // captures last record
+                    $activities[$modindex]["last"] = true;
+                }
+            }
+        }
+
+        // this is basically a SUM(completed) GROUP BY(course) across each row
+        // we end up tagging the last record per course group with a boolean state which is picked up in the template
+        foreach ($table as $table_index => $row) {
+            if ($row['header'] === true) {
+                $table[$table_index]['colspan'] = $table[$table_index]['colspan'] + $courseheader_count; // account for one extra 'done' column per course
+                continue;
+            }
+            $data = $row['columns'];
+            $data_count = count($data);
+            $last_course = $data[0]['course'];
+            $course_count = 0;
+            $compl = 0;
+            foreach ($data as $data_index => $curr) {
+                $record_index = ($data_index===$data_count-1) ? $data_index : $data_index - 1;
+                if ($last_course === $curr['course']) {
+                    // continue aggregating current course group
+                    $course_count += 1;
+                    $compl += ($curr['complete'] === true) ? 1 : 0;
+                    if ($data_index===$data_count-1) {
+                        // mark as last record in group, as it is the last in the series
+                        $table[$table_index]['columns'][$record_index]['done'] = boolval($compl === $course_count);
+                        $table[$table_index]['columns'][$record_index]['last'] = true;
+                    }
+
+                } else {
+                    // mark as last record in group
+                    $table[$table_index]['columns'][$record_index]['done'] = boolval($compl === $course_count);
+                    $table[$table_index]['columns'][$record_index]['last'] = true;
+
+                    // but also start counting again
+                    $compl = ($curr['complete'] === true) ? 1 : 0;
+                    $course_count = 1;
+                    $last_course = $curr['course'];
+                }
+            }
+        }
+
+        // here is our final data to send to the renderer
         $result = [
-            "activities" => $activities,
             "courseheaders" => $courseheaders,
+            "activities" => $activities,
             "table" => $table
         ];
-
-       // echo "<pre>"; var_dump($table); echo "</pre>";
 
         return $result;
 
