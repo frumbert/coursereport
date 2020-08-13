@@ -68,12 +68,17 @@ class main implements renderable, templatable {
 
         $courses_and_activities = get_courses_for_year($this->year);
         $columns = count($courses_and_activities);
-
+        $lastcourse = 0;
         foreach ($courses_and_activities as $course) {
+            $classname = 'course-'.$course['id'];
+            if ($lastcourse !== $course['id']) $classname .= ' first';
+            $lastcourse = $course['id'];
             $activities[] = [
                 "cmid" => $course['cmid'],
-                "name" => $course['mod'],
-                "category" => $course['category']
+                "mod" => $course['mod'],
+                "name" => $course['activity'],
+                "category" => $course['category'],
+                "classname" => $classname
             ];
             if (!array_key_exists($course['fullname'], $courseheaders)) {
                 $courseheaders[$course['fullname']] = [
@@ -106,7 +111,8 @@ class main implements renderable, templatable {
 
                 // array to contain the completion rows
                 $data = [];
-
+                $total_complete = 0;
+                $end = end($activities);
                 // for each activity, grab the matching completion
                 foreach ($activities as $cm) {
                     $complete = 0;
@@ -118,9 +124,15 @@ class main implements renderable, templatable {
                     }
                     $data[] = [
                         "complete" => $complete,
-                        "category" => $cm['category']
+                        "category" => $cm['category'],
+                        "classname" => $cm['classname']
                     ];
+                    // if ($complete) $total_complete++;
                 }
+                // $data[] = [
+                //     "complete" => (count($activities) === $total_complete),
+                //     "category" => $cm['category']
+                // ];
                 $userhtml = $OUTPUT->user_picture($user) .
                             \html_writer::link(new \moodle_url('/user/view.php', ['id' => $user->id]), fullname($user));
  

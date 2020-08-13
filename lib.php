@@ -84,12 +84,14 @@ function get_courses_for_year($year) {
                 if ($cm->uservisible && $cm->available && in_array($cm->modname, $modnames)) {
                     // $url = new moodle_url("/mod/{$cm->modname}/view.php",["id"=>$cmid]);
                     $rows[] = [
+                        "id" => $cm->course,
                         "cmid" => (int) $cm->id,
                         "category" => (int) $row->category,
                         "courseid" => (int) $row->id,
                         "fullname" => $row->fullname,
                         "startdate" => (int) $row->startdate,
                         "mod" => $cm->modname,
+                        "activity" => $cm->name
                     //    "url" => $url->out()
                     ];
                 }

@@ -26,16 +26,16 @@
 <div class="local_classreport_scroll_wrapper">
 <table class="local_classreport_table">
     <thead>
-        <tr>
-            <th class="sticky-column"><span/></th>
+        <tr class="coursenames">
+            <td class="sticky-column"><span/></td>
             {{#courseheaders}}
             <th colspan="{{colspan}}" class="sticky-row-0 course-{{id}} category-{{category}}"><a href="/course/view.php?id={{id}}">{{name}}</a><br><span class="small">{{#userdate}} {{startdate}}, {{#str}} strftimedate {{/str}} {{/userdate}}</span></th>
             {{/courseheaders}}
         </tr>
-        <tr>
+        <tr class="modulenames">
             <th class="sticky-column">{{#str}} students {{/str}}</th>
             {{#activities}}
-            <th class="sticky-row-1 category-{{category}} mod-{{name}}"><a href="/mod/{{name}}/view.php?id={{cmid}}">{{name}}</a></th>
+            <th class="sticky-row-1 category-{{category}} mod-{{mod}} {{classname}}"><a href="/mod/{{mod}}/view.php?id={{cmid}}">{{name}}</a></th>
             {{/activities}}
         </tr>
     </thead>
@@ -44,10 +44,10 @@
         <tr>
             <th class="sticky-column {{class}}">{{{content}}}</th>
     {{#header}}
-            <td colspan="{{colspan}}" class="{{class}}"></td>
+            <th colspan="{{colspan}}" class="{{class}}"></th>
     {{/header}}
     {{^header}}
-            {{#columns}}<td class="state-{{complete}} category-{{category}}">{{#complete}}{{# pix }} i/valid, core{{/pix}}{{/complete}}{{^complete}}{{# pix }} i/invalid, core{{/pix}}{{/complete}}</td>{{/columns}}
+            {{#columns}}<td class="state-{{complete}} category-{{category}} {{classname}}">{{#complete}}{{# pix }} i/valid, core{{/pix}}{{/complete}}{{^complete}}{{# pix }} i/invalid, core{{/pix}}{{/complete}}</td>{{/columns}}
     {{/header}}
         </tr>
     {{/table}}
