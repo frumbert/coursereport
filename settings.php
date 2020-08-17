@@ -46,7 +46,6 @@ if ($hassiteconfig) {
 	    	$all_modules));
 	}
 
-	// $defaultscss = file_get_contents($CFG->dirroot . '/local/classreport/styles.css');
     $settings->add(new admin_setting_scsscode('local_classreport/scss', get_string('scss', 'local_classreport'),
         get_string('scss_desc', 'local_classreport'), '', PARAM_RAW));
 

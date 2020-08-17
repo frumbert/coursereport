@@ -23,8 +23,10 @@ $string['groupnamesdesc'] = 'One name per line. First letter will be used as pre
 $string['modnames'] = 'Activities to include';
 $string['modnamesdesc'] = 'Select one or more activities to include';
 
+$string['classreport:view'] = 'View Class Report';
+
 $string['label_finduser'] = 'Find a user:';
 $string['placeholder_typename'] = 'Type a few letters...';
 $string['done'] = 'Done';
 $string['scss'] = 'SCSS';
-$string['scss_desc'] = 'Custom CSS for the report. You can use SCSS format.';
+$string['scss_desc'] = 'Custom CSS for the report. You can use SCSS format. The default scss file is <a href="/local/classreport/default.scss" download>here</a>.';
