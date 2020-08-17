@@ -1,0 +1,117 @@
+:root {
+
+	--blue: #336699;
+	--green: #3a7d44;
+	--red: #d33e43;
+	--yellow: #deda54;
+	--white: #fcfcfc;
+
+	--colour1: #469FA4;
+	--colour2: #BBBE53;
+	--colour3: #E27443;
+	--colour4: #D3B2A1;
+	--colour5: #96A79D;
+	--colour6: #F1B4BC;
+	--colour7: #EE805B;
+	--colour8: #8F4866;
+	--colour9: #31233A;
+	--colour10: #E39737;
+
+}
+
+.local_classreport_table_wrapper {
+	table {
+
+		[class*='category-'] {
+			color: white;
+		}
+
+		thead {
+			background-color: white;
+
+			.category-1 {
+				background-color: var(--colour1);
+			}
+			.category-2 {
+				background-color: var(--colour2);
+			}
+			.category-3 {
+				background-color: var(--colour3);
+			}
+			.category-4 {
+				background-color: var(--colour4);
+			}
+			.category-5 {
+				background-color: var(--colour5);
+			}
+			.category-6 {
+				background-color: var(--colour6);
+			}
+			.category-7 {
+				background-color: var(--colour7);
+			}
+			.category-8 {
+				background-color: var(--colour8);
+			}
+			.category-9 {
+				background-color: var(--colour9);
+			}
+			.category-10 {
+				background-color: var(--colour10);
+			}
+		}
+
+		.group-blue {
+			background-color: var(--blue);
+			color: white;
+		}
+		.group-red {
+			background-color: var(--red);
+			color: white;
+		}
+		.group-green {
+			background-color: var(--green);
+			color: white;
+		}
+		.group-yellow {
+			background-color:var(--yellow);
+			color: white;
+		}
+		.group-white {
+			background-color: var(--white);
+			color: black;
+		}
+
+		.category-1 {
+			box-shadow: inset -1px -1px 1px var(--colour1);
+		}
+		.category-2 {
+			box-shadow: inset -1px -1px 1px var(--colour2);
+		}
+		.category-3 {
+			box-shadow: inset -1px -1px 1px var(--colour3);
+		}
+		.category-4 {
+			box-shadow: inset -1px -1px 1px var(--colour4);
+		}
+		.category-5 {
+			box-shadow: inset -1px -1px 1px var(--colour5);
+		}
+		.category-6 {
+			box-shadow: inset -1px -1px 1px var(--colour6);
+		}
+		.category-7 {
+			box-shadow: inset -1px -1px 1px var(--colour7);
+		}
+		.category-8 {
+			box-shadow: inset -1px -1px 1px var(--colour8);
+		}
+		.category-9 {
+			box-shadow: inset -1px -1px 1px var(--colour9);
+		}
+		.category-10 {
+			box-shadow: inset -1px -1px 1px var(--colour10);
+		}
+	}
+
+}
