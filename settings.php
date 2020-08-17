@@ -42,9 +42,13 @@ if ($hassiteconfig) {
 	    $settings->add(new admin_setting_configmultiselect('local_classreport/modnames',
 	    	get_string('modnames', 'local_classreport'),
 	    	get_string('modnamesdesc', 'local_classreport'),
-	        ["scorm","page","feedback","assign","quiz"],
+	        ["scorm","page","feedback","assign","choice","lesson","quiz"],
 	    	$all_modules));
 	}
+
+	// $defaultscss = file_get_contents($CFG->dirroot . '/local/classreport/styles.css');
+    $settings->add(new admin_setting_scsscode('local_classreport/scss', get_string('scss', 'local_classreport'),
+        get_string('scss_desc', 'local_classreport'), '', PARAM_RAW));
 
 }
 

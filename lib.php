@@ -138,3 +138,18 @@ function local_classreport_get_fontawesome_icon_map() {
         'i/invalid' => 'fa-times'
     ];
 }
+
+function local_classreport_get_compiled_css() {
+    $data = get_config('local_classreport', 'scss');
+    if (empty($data)) return '';
+    $result = '';
+    $fn = new core_scss();
+    try {
+        $result = $fn->compile($data);
+    } catch (Leafo\ScssPhp\Exception\ParserException $e) {
+        //
+    } catch (Leafo\ScssPhp\Exception\CompilerException $e) {
+        //
+    }
+    return $result;
+}

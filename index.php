@@ -39,6 +39,7 @@ $PAGE->set_context($context);
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
+$PAGE->requires->css('/local/classreport/css.php');
 
 // render the page using templates
 $renderer = $PAGE->get_renderer('local_classreport');
