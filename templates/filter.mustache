@@ -23,13 +23,15 @@
     Example context (json):
     {}
 }}
-<div class="local_classreport_filter_wrapper">
-<label for="finduser_{{uniqid}}">{{#str}} label_finduser, local_classreport {{/str}}</label>
-<input type="text" id="finduser_{{uniqid}}" placeholder="{{#str}} placeholder_typename, local_classreport {{/str}}">
-{{! 
-    downloding was not part of the spec .. you'd have to build an excel file
-    <button>Download</button>
-}}
+<div class="local_classreport_filter_wrapper container-fluid">
+    <div class="row form-inline">
+        <div class="col">
+            <div class="form-inline">
+                <label for="finduser_{{uniqid}}" class="form-text-label">{{#str}} label_finduser, local_classreport {{/str}}</label>
+                <input type="text" id="finduser_{{uniqid}}" placeholder="{{#str}} placeholder_typename, local_classreport {{/str}}" class="form-control">
+            </div>
+        </div>
+    </div>
 </div>
 
 {{#js}}

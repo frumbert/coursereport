@@ -46,7 +46,18 @@ class renderer extends plugin_renderer_base {
      * @param main $main The main renderable
      * @return string HTML string
      */
+    public function render_filter(filter $filter) {
+        return $this->render_from_template('local_classreport/filter', $filter->export_for_template($this));
+    }
+
+    /**
+     * Return the main content for the class report.
+     *
+     * @param main $main The main renderable
+     * @return string HTML string
+     */
     public function render_main(main $main) {
-        return $this->render_from_template('local_classreport/table', $main->export_for_template($this));
+        $template = ($main->export) ? 'local_classreport/sheet' : 'local_classreport/table';
+        return $this->render_from_template($template, $main->export_for_template($this));
     }
 }

@@ -38,14 +38,14 @@ function get_group_names_array() {
 }
 
 // look up users in a year and group, return useful user fields
-function get_user_details($year, $group) {
+function get_user_details($year, $group, $order = 'lastname, firstname') {
     global $DB;
     $fields = \user_picture::fields('',['institution']);
     $sql = "
         SELECT {$fields}
         FROM {user}
         WHERE department = '{$year}{$group}'
-        ORDER BY lastname, firstname
+        ORDER BY {$order}
     ";
     return $DB->get_records_sql($sql);
 }
@@ -130,14 +130,14 @@ function get_user_completions_data($users, $all_courses) {
  *
  * @return  array
  */
-function local_classreport_get_fontawesome_icon_map() {
-    return [
-        'i/checkedcircle' => 'fa-circle',
-        'i/uncheckedcircle' => 'fa-circle-o',
-        'i/valid' => 'fa-check',
-        'i/invalid' => 'fa-times'
-    ];
-}
+// function local_classreport_get_fontawesome_icon_map() {
+//     return [
+//         'i/checkedcircle' => 'fa-circle',
+//         'i/uncheckedcircle' => 'fa-circle-o',
+//         'i/valid' => 'fa-check',
+//         'i/invalid' => 'fa-times'
+//     ];
+// }
 
 function local_classreport_get_compiled_css() {
     $data = get_config('local_classreport', 'scss');

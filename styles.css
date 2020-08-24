@@ -30,6 +30,9 @@
 	border-right: rgba(0,0,0,.2);
 	z-index:2;
 }
+.local_classreport_table_wrapper table .sticky-column.level {
+	left: 209px;
+}
 
 .local_classreport_table_wrapper table .sticky-row-0 {
 	top: 0;
@@ -62,7 +65,7 @@
 	padding: .3rem .7rem;
 }
 
-.local_classreport_table_wrapper table tbody th {
+.local_classreport_table_wrapper table tbody th:not(.level) {
 	text-align:left;
 	min-width: 13rem;
 }
@@ -111,6 +114,7 @@
 	padding: .2rem .5rem;
 	font-weight: normal;
 }
+.local_classreport_table_wrapper table thead tr.modulenames th.level,
 .local_classreport_table_wrapper table thead tr.modulenames th:first-of-type {
 	vertical-align: bottom;
 	font-weight: bold;

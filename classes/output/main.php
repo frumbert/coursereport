@@ -40,18 +40,24 @@ class main implements renderable, templatable {
 	protected $year;
 	protected $groups;
     protected $sortorder;
+    public $export;
 
     /**
      * main constructor.
      *
      * @param int $year - number between 7 and 12
-     * @param string $sort - not implemented
+     * @param string $sort - lastname or level
      * @param array $groups - group names
      */
-    public function __construct($year, $sort) {
+    public function __construct($year, $sort, $export = false) {
         $this->year = $year;
-        $this->sortorder = $sort;
+        if ($sort === 'level') {
+            $this->sortorder = 'institution desc, lastname, firstname';
+        } else {
+            $this->sortorder = 'lastname, firstname';
+        }
         $this->groups = get_group_names_array();
+        $this->export = $export;
     }
 
     /**
@@ -121,7 +127,7 @@ class main implements renderable, templatable {
             ];
 
             // look up users in this year/group
-            $users = get_user_details($this->year, $letter);
+            $users = get_user_details($this->year, $letter, $this->sortorder);
             // get the completion records for this set of users for all activities
             $completions = get_user_completions_data($users, $courses_and_activities);
 
@@ -150,8 +156,12 @@ class main implements renderable, templatable {
                 }
 
                 // generate the user picture and profile link
-                $userhtml = $OUTPUT->user_picture($user) .
+                if ($this->export) {
+                    $userhtml = fullname($user);
+                } else {
+                    $userhtml = $OUTPUT->user_picture($user) .
                             \html_writer::link(new \moodle_url('/user/view.php', ['id' => $user->id]), fullname($user));
+                }
  
                 // write the record for this user
                 $table[] = [
@@ -242,7 +252,9 @@ class main implements renderable, templatable {
         return [
             "courseheaders" => $courseheaders,
             "activities" => $activities,
-            "table" => $table
+            "table" => $table,
+            "year" => $this->year,
+            "sort" => ($this->sortorder === 'lastname')
         ];
 
     }

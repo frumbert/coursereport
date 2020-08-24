@@ -37,11 +37,14 @@ use templatable;
  */
 class filter implements renderable, templatable {
 
+    protected $params;
+
     /**
      * main constructor.
      *
      */
-    public function __construct() {
+    public function __construct($params) {
+        $this->params = $params;
     }
 
     /**
@@ -51,7 +54,7 @@ class filter implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output) {
-        return [];
+        return $this->params;
     }
 
 }
