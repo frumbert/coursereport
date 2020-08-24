@@ -101,7 +101,7 @@
 	color: inherit;
 }
 
-.local_classreport_table_wrapper table tr.coursenames th:not(:first-of-type),
+.local_classreport_table_wrapper table tr.coursenames th:not(:first-of-type):not(:nth-child(3)),
 .local_classreport_table_wrapper table .first:not(:first-of-type) {
 	border-left: var(--lcr-gap) solid white;
 }
