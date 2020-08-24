@@ -34,8 +34,13 @@
             {{/courseheaders}}
         </tr>
         <tr class="modulenames">
-            <th class="sticky-column">{{#str}} students {{/str}}<a href="/local/classreport/index.php?year={{year}}&sort=lastname" class='pull-right'>{{#sort}}{{#pix}} t/sort_by, core, Sorted by lastname{{/pix}}{{/sort}}{{^sort}}{{#pix}} t/sort, core, Sort by lastname{{/pix}}{{/sort}}</a></th>
-            <th class="sticky-column level"><a href="/local/classreport/index.php?year={{year}}&sort=level">{{^sort}}{{#pix}} t/sort_by, core, Sorted by level{{/pix}}{{/sort}}{{#sort}}{{#pix}} t/sort, core, Sort by level{{/pix}}{{/sort}}</a></th>
+            <th class="sticky-column">
+                {{#str}} students {{/str}}
+                <a href="/local/classreport/index.php?year={{year}}&sort=lastname" class='pull-right'>{{#lastname}}{{#pix}} t/sort_asc, core, Sorted by lastname{{/pix}}{{/lastname}}{{^lastname}}{{#pix}} t/sort, core, Sort by lastname{{/pix}}{{/lastname}}</a>
+            </th>
+            <th class="sticky-column level">
+                <a href="/local/classreport/index.php?year={{year}}&sort=level">{{#lastname}}{{#pix}} t/sort, core, Sort by level{{/pix}}{{/lastname}}{{^lastname}}{{#pix}} t/sort_desc, core, Sorted by level{{/pix}}{{/lastname}}</a>
+            </th>
             {{#activities}}
             <th class="sticky-row-1 category-{{category}} mod-{{mod}} {{classname}}"><a href="/mod/{{mod}}/view.php?id={{cmid}}">{{name}}</a></th>
             {{#last}}

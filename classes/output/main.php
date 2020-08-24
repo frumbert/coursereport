@@ -254,7 +254,7 @@ class main implements renderable, templatable {
             "activities" => $activities,
             "table" => $table,
             "year" => $this->year,
-            "sort" => ($this->sortorder === 'lastname')
+            "lastname" => (strpos($this->sortorder, 'institution') === false)
         ];
 
     }
