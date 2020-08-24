@@ -46,6 +46,7 @@ $PAGE->requires->css('/local/classreport/css.php');
 $renderer = $PAGE->get_renderer('local_classreport');
 $report = new \local_classreport\output\main($year, $sort, $download);
 
+// unfinished multi-sheet export
 if (0 && $download) {
 
 	// generate the report data for use in the spreadsheet
@@ -83,7 +84,7 @@ if (0 && $download) {
 	    	$k = $k + $span;
 	    	$ranges[] = $span;
 	    }
-	    // merge the header cells
+	    // merge the header cells - causes index reflows
 	    // for ($j=0;$j<count($ranges);$j++) {
 	    // 	$sheet->merge_cells(0,3+$j,0,3+$j+$ranges[$j]);
 	    // }
@@ -96,7 +97,7 @@ if (0 && $download) {
 
 	    // table data
 	    for ($j=0;$j<count($data['table']);$j++) {
-
+	    	// contains 'columns' if showing userdata otherwise is a group header
 	    }
 
 	}
@@ -113,9 +114,9 @@ $dllink = html_writer::link(
 );
 $PAGE->set_button($dllink);
 
-
+// simple download function for current sheet only
 if ($download) {
-	$filename = clean_filename("classreport_".date_format(date_create("now"),"YmdHis")).'.xls';
+	$filename = clean_filename("ClassReport_Y".$year."_".date_format(date_create("now"),"YmdHis")).'.xls';
 	header('Content-type: application/excel');
 	header('Content-Disposition: attachment; filename='.$filename);
 	echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">
@@ -125,7 +126,7 @@ if ($download) {
         <x:ExcelWorkbook>
             <x:ExcelWorksheets>
                 <x:ExcelWorksheet>
-                    <x:Name>Sheet 1</x:Name>
+                    <x:Name>Year '.$year.'</x:Name>
                     <x:WorksheetOptions>
                         <x:Print>
                             <x:ValidPrinterInfo/>
