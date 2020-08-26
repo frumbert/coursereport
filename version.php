@@ -24,7 +24,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_classreport';
 $plugin->cron = 0; 
-$plugin->version  = 2020080100;
+$plugin->version  = 2020082600;
 $plugin->requires = 2018051700; // 3.5
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = 'Hillbrook Class Report';
