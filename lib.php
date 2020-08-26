@@ -153,3 +153,53 @@ function local_classreport_get_compiled_css() {
     }
     return $result;
 }
+
+// you can convert html tables to excel sheets directly, see
+// https://stackoverflow.com/a/60430576
+function createAndDownloadExcelWorksheet($sort, $filename) {
+global $PAGE, $CFG;
+
+    // invoke phpexcel autoloader
+    require_once($CFG->libdir . '/phpexcel/PHPExcel.php');
+
+    // scoped variables
+    $renderer = $PAGE->get_renderer('local_classreport');
+    $objOutput = new PHPExcel();
+
+    for ($year=7;$year<13;$year++) {
+
+        // create a new spreadsheet and select the first sheet
+        $objPHPExcel = new PHPExcel();
+        $asheet = $objPHPExcel->setActiveSheetIndex(0);
+        $asheet->setTitle("Year " . $year);
+
+        // render table using template
+        $report = new \local_classreport\output\main($year, $sort, true);
+        $table = $renderer->render_main($report);
+
+        // save the html to a temp file
+        $tmpfile = tempnam(sys_get_temp_dir(), 'html');
+        file_put_contents($tmpfile, $table);
+
+        // read the html back in as a sheet
+        $excelHTMLReader = PHPExcel_IOFactory::createReader('HTML');
+        $excelHTMLReader->loadIntoExisting($tmpfile, $objPHPExcel);
+        unlink($tmpfile);
+
+        // append this sheet to the overall spreadsheet
+        $objOutput->addExternalSheet($asheet, $year - 7);
+
+    }
+
+    // set which tab is selected by default
+    $objOutput->setActiveSheetIndex(0);
+
+    // send to browser as an attachment
+    header('Content-type: application/excel');
+    header("Content-Disposition:attachment;filename={$filename}");
+
+    // send to php output stream directly
+    $objWriter = PHPExcel_IOFactory::createWriter($objOutput, 'Excel2007');
+    $objWriter->save('php://output');
+
+}

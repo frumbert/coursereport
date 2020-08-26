@@ -46,67 +46,7 @@ $PAGE->requires->css('/local/classreport/css.php');
 $renderer = $PAGE->get_renderer('local_classreport');
 $report = new \local_classreport\output\main($year, $sort, $download);
 
-// unfinished multi-sheet export
-if (0 && $download) {
-
-	// generate the report data for use in the spreadsheet
-	$data = $report->export_for_template($renderer);
-	/*
-	header('content-type: text/plain');
-	var_dump();
-	exit(0);
-
-	[courseheaders] = [name, startdate, colspan, id, category]
-	[activities] = [cmid, mod, name, category, classname, course, last]
-	[table] =  [header, class, content, colspan]
-			or [header, content, level, class, columns = [
-						complete, category, classname, course, done, last
-					]
-				]
-	*/
-
-	require_once("$CFG->libdir/excellib.class.php");
-	$filename = clean_filename("classreport_".date_format(date_create("now"),"YmdHis")).'.xls';
-    $workbook = new \MoodleExcelWorkbook("-");
-    $workbook->send($filename);
-    for ($i=7;$i<13;$i++) {
-	    $sheet = $workbook->add_worksheet('Year '.$i);
-	    $sheet->write(0,0,'Name'); // row, column, token, format=null
-	    $sheet->write(0,1,'Level');
-	    $sheet->write(0,2,'Group');
-	    $ranges = [];
-
-	    // header row
-	    for ($j=0,$k=3;$j<count($data['courseheaders']);$j++) {
-	    	$cell = $data['courseheaders'][$j]['name'];
-	    	$span = $data['courseheaders'][$j]['colspan'];
-	    	$sheet->write(0,$k,$cell);
-	    	$k = $k + $span;
-	    	$ranges[] = $span;
-	    }
-	    // merge the header cells - causes index reflows
-	    // for ($j=0;$j<count($ranges);$j++) {
-	    // 	$sheet->merge_cells(0,3+$j,0,3+$j+$ranges[$j]);
-	    // }
-
-	    // activity names
-	    for ($j=0;$j<count($data['activities']);$j++) {
-	    	$cell = $data['activities'][$j]['name'];
-	    	$sheet->write(1,$j+3,$cell);
-	    }
-
-	    // table data
-	    for ($j=0;$j<count($data['table']);$j++) {
-	    	// contains 'columns' if showing userdata otherwise is a group header
-	    }
-
-	}
-    $workbook->close();
-	exit(0);
-}
-
-
-// set the page action button
+// set the page action button (AFTER generating report, above)
 $params["download"] = "1";
 $dllink = html_writer::link(
 	new moodle_url('/local/classreport/index.php', $params), get_string('download'),
@@ -114,40 +54,21 @@ $dllink = html_writer::link(
 );
 $PAGE->set_button($dllink);
 
-// simple download function for current sheet only
+// decide on whether the page renders or download
 if ($download) {
-	$filename = clean_filename("ClassReport_Y".$year."_".date_format(date_create("now"),"YmdHis")).'.xls';
-	header('Content-type: application/excel');
-	header('Content-Disposition: attachment; filename='.$filename);
-	echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">
-<head>
-    <!--[if gte mso 9]>
-    <xml>
-        <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-                <x:ExcelWorksheet>
-                    <x:Name>Year '.$year.'</x:Name>
-                    <x:WorksheetOptions>
-                        <x:Print>
-                            <x:ValidPrinterInfo/>
-                        </x:Print>
-                    </x:WorksheetOptions>
-                </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-        </x:ExcelWorkbook>
-    </xml>
-    <![endif]-->
-</head>
 
-<body>';
-	echo $renderer->render_main($report);
-	echo '</body></html>';
+	$filename = clean_filename("ClassReport_Y".$year."_".date_format(date_create("now"),"YmdHis")).'.xls';
+	createAndDownloadExcelWorksheet($sort,$filename);
+	exit(0);
+
 } else {
-echo $OUTPUT->header();
-$renderable = new \local_classreport\output\tabs($year);
-echo $renderer->render_tabs($renderable);
-$renderable = new \local_classreport\output\filter($params);
-echo $renderer->render_filter($renderable);
-echo $renderer->render_main($report);
-echo $OUTPUT->footer();
+
+	echo $OUTPUT->header();
+	$renderable = new \local_classreport\output\tabs($year);
+	echo $renderer->render_tabs($renderable);
+	$renderable = new \local_classreport\output\filter($params);
+	echo $renderer->render_filter($renderable);
+	echo $renderer->render_main($report);
+	echo $OUTPUT->footer();
+
 }
