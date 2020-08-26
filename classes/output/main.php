@@ -77,6 +77,14 @@ class main implements renderable, templatable {
         // this array holds, in final order, useful properties of the courses and the activities this user can see.
         $courses_and_activities = get_courses_for_year($this->year);
 
+        // if we didn't find anything above we can NOT continue.
+        if (!$courses_and_activities) {
+            return [
+                "error" => true,
+                "message" => findAndReturnErrorReason($this->year)
+            ];
+        }
+
         $columns = count($courses_and_activities);
         $lastcourse = 0;
         foreach ($courses_and_activities as $course) {
@@ -118,6 +126,12 @@ class main implements renderable, templatable {
         // based on the activity data we already looked up
         foreach ($this->groups as $letter => $label) {
 
+            // look up users in this year/group
+            $users = get_user_details($this->year, $letter, $this->sortorder);
+            if (!$users) {
+                continue; // no users in year, or no users in group in year
+            }
+
             // a record marked as a header will draw the group name and span it across the table
             $table[] = [
                 "header" => true,
@@ -126,8 +140,6 @@ class main implements renderable, templatable {
                 "colspan" => $columns
             ];
 
-            // look up users in this year/group
-            $users = get_user_details($this->year, $letter, $this->sortorder);
             // get the completion records for this set of users for all activities
             $completions = get_user_completions_data($users, $courses_and_activities);
 

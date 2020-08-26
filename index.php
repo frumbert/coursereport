@@ -57,7 +57,7 @@ $PAGE->set_button($dllink);
 // decide on whether the page renders or download
 if ($download) {
 
-	$filename = clean_filename("ClassReport_Y".$year."_".date_format(date_create("now"),"YmdHis")).'.xls';
+	$filename = clean_filename("ClassReport_".date_format(date_create("now"),"YmdHis")).'.xls';
 	createAndDownloadExcelWorksheet($sort,$filename);
 	exit(0);
 

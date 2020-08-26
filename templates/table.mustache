@@ -24,6 +24,8 @@
 }}
 <div class="local_classreport_table_wrapper">
 <div class="local_classreport_scroll_wrapper">
+{{#error}}{{message}}{{/error}}
+{{^error}}
 <table class="local_classreport_table">
     <thead>
         <tr class="coursenames">
@@ -64,6 +66,7 @@
         </tr>
     {{/table}}
 </table>
+{{/error}}
 </div>
 </div>
 {{#js}}
@@ -81,8 +84,5 @@ require(['jquery'], function($) {
     $(window).on('resize', fitViewport);
 
     fitViewport();
-
-
-
 });
 {{/js}}

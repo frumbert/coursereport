@@ -99,12 +99,17 @@ function get_courses_for_year($year) {
         }
         return $rows;
     }
-    return false;
+
+    // some part of the lookup failed, return catchable state
+    return null;
 }
 
 // look up records for users in coursemodules we know about; no record = no completion
 function get_user_completions_data($users, $all_courses) {
     global $DB;
+
+
+
     $cmids = implode(',',array_values(array_column($all_courses,"cmid")));
     $userids = implode(',',array_values(array_column((array) $users,"id")));
     $sql = "
@@ -154,17 +159,27 @@ function local_classreport_get_compiled_css() {
     return $result;
 }
 
-// you can convert html tables to excel sheets directly, see
-// https://stackoverflow.com/a/60430576
+// you can convert html tables to excel sheets directly, with some formatting
+// see https://stackoverflow.com/a/60430576
 function createAndDownloadExcelWorksheet($sort, $filename) {
-global $PAGE, $CFG;
+global $CFG;
 
-    // invoke phpexcel autoloader
+    // MOODLE 3.8 removed PHPExcel and replaced it with PHPSpreadsheet
+    // there's enough different to need to fork codepaths
+    if (file_exists($CFG->libdir . '/phpexcel/PHPExcel.php')) {
+        createAndDownloadExcel_pre38($sort, $filename);
+    } else {
+        createAndDownloadExcel_38plus($sort, str_replace('.xls','.xlsx', $filename));
+    }
+
+}
+
+function createAndDownloadExcel_pre38($sort, $filename) {
+global $PAGE, $CFG;
     require_once($CFG->libdir . '/phpexcel/PHPExcel.php');
 
-    // scoped variables
-    $renderer = $PAGE->get_renderer('local_classreport');
     $objOutput = new PHPExcel();
+    $renderer = $PAGE->get_renderer('local_classreport');
 
     for ($year=7;$year<13;$year++) {
 
@@ -202,4 +217,106 @@ global $PAGE, $CFG;
     $objWriter = PHPExcel_IOFactory::createWriter($objOutput, 'Excel2007');
     $objWriter->save('php://output');
 
+}
+
+function createAndDownloadExcel_38plus($sort, $filename) {
+global $PAGE, $CFG;
+    require_once($CFG->libdir . '/excellib.class.php');
+
+    $objOutput = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $renderer = $PAGE->get_renderer('local_classreport');
+
+    for ($year=7;$year<13;$year++) {
+
+        // create a new spreadsheet and select the first sheet
+        $excel = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $asheet = $excel->getActiveSheet(); // $excel->setActiveSheetIndex(1);
+        $asheet->setTitle("Year " . $year);
+
+        // render table using template
+        $report = new \local_classreport\output\main($year, $sort, true);
+        $table = $renderer->render_main($report);
+        $table = "<!doctype html><html><body>{$table}</body></html>";
+
+        // save the html to a temp file
+        $tmpfile = tempnam(sys_get_temp_dir(), 'html');
+        file_put_contents($tmpfile, $table);
+
+        // read the html back in as a sheet
+        $excelHTMLReader = new \PhpOffice\PhpSpreadsheet\Reader\Html;
+        $excelHTMLReader->loadIntoExisting($tmpfile, $excel);
+        unlink($tmpfile);
+
+        // append this sheet to the overall spreadsheet
+        $objOutput->addExternalSheet($asheet, $year - 6);
+
+    }
+
+    // set which tab is selected by default
+    $objOutput->setActiveSheetIndex(1);
+
+    // send to browser as an attachment
+    header('Content-type: application/excel');
+    header("Content-Disposition:attachment;filename={$filename}");
+
+    // send to php output stream directly
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($objOutput);
+    $writer->save('php://output');
+
+}
+
+// for reporting on the error condition when iterating through
+function findAndReturnErrorReason($year) {
+global $DB;
+
+    $num = $DB->count_records_sql("
+        SELECT COUNT('x') FROM {course_categories}
+        WHERE visible=1
+    ");
+    if ($num === 0) {
+        return 'No categories are visible.';
+    }
+
+    $num = $DB->count_records_sql("
+        SELECT COUNT('x') FROM {course}
+        WHERE visible=1
+    ");
+    if ($num === 0) {
+        return 'No courses are visible.';
+    }
+
+    $num = $DB->count_records_sql("
+        SELECT COUNT('x') FROM {user}
+        WHERE department LIKE '{$year}_'
+        AND deleted = 0
+        AND suspended = 0
+    ");
+    if ($num === 0) {
+        return 'No active users (not deleted or suspended) are in this year.';
+    }
+
+    $num = $DB->count_records_sql("
+        SELECT COUNT(m.courseid) FROM {user_enrolments} e
+        INNER JOIN {enrol} m ON e.enrolid = m.id
+    ");
+    if ($num === 0) {
+        return 'There are no user enrolments at all.';
+    }
+
+    $num = $DB->count_records_sql("
+            SELECT COUNT(m.courseid) FROM {user_enrolments} e
+            INNER JOIN {enrol} m ON e.enrolid = m.id
+            WHERE e.userid IN (
+                SELECT id FROM {user}
+                WHERE department LIKE '{$year}_'
+                AND deleted = 0
+                AND suspended = 0
+            )
+    ");
+    if ($num === 0) {
+        return 'There are no users enrolled in courses for this year.';
+    }
+
+
+    return 'Setup data for user/courses/enrolments is in an invalid state.';
 }
