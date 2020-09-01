@@ -40,11 +40,13 @@ function get_group_names_array() {
 // look up users in a year and group, return useful user fields
 function get_user_details($year, $group, $order = 'lastname, firstname') {
     global $DB;
-    $fields = \user_picture::fields('',['institution']);
+    $fields = \user_picture::fields('u',['institution']);
     $sql = "
         SELECT {$fields}
-        FROM {user}
-        WHERE department = '{$year}{$group}'
+        FROM {user} u
+        WHERE u.department = '{$year}{$group}'
+        AND u.deleted = 0
+        AND u.suspended = 0
         ORDER BY {$order}
     ";
     return $DB->get_records_sql($sql);
@@ -67,7 +69,8 @@ function get_courses_for_year($year) {
         AND c.id IN (
             SELECT m.courseid FROM {user_enrolments} e
             INNER JOIN {enrol} m ON e.enrolid = m.id
-            WHERE e.userid IN (
+            WHERE e.status = 0
+            AND e.userid IN (
                 SELECT id FROM {user}
                 WHERE department LIKE '{$year}_'
                 AND deleted = 0
@@ -107,8 +110,6 @@ function get_courses_for_year($year) {
 // look up records for users in coursemodules we know about; no record = no completion
 function get_user_completions_data($users, $all_courses) {
     global $DB;
-
-
 
     $cmids = implode(',',array_values(array_column($all_courses,"cmid")));
     $userids = implode(',',array_values(array_column((array) $users,"id")));
